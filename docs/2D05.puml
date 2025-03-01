@@ -1,0 +1,24 @@
+@startuml 2D05
+left to right direction
+
+actor "Attacker" as Hacker
+rectangle "Command & Control (C2)" as C2 {
+  component "Botmaster Server"
+}
+cloud "Botnet" {
+  component "Compromised Devices (Bots)"
+  component "IoT Devices"
+  component "Servers"
+}
+rectangle "Target" as Target {
+  component "Web Server"
+  component "Database"
+}
+
+Hacker --> C2 : 1. Sends attack command
+C2 --> Botnet : 2. Propagates instructions
+Botnet --> Target : 3. Floods target with traffic (HTTP/SYN/UDP)
+Target --> Target : 4. Resource exhaustion (CPU/RAM/Bandwidth)
+Target --> [Down] : 5. Service disruption
+
+@enduml
