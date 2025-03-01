@@ -7,8 +7,8 @@ class TrafficFlood {
    public:
     void Flood(std::string url);
     int HttpRequest(std::string url);
-
     std::string URL_TO_IP(std::string url);
+    bool IsURLExist(std::string url);
 };
 
 #endif
