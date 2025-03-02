@@ -1,8 +1,8 @@
 run:
-	- clang++ -std=c++11 -o bin/2D05 main.cpp src/Controller/TrafficFlood.cpp src/Utilities/logger.cpp -lcurl && ./bin/2D05
+	- clang++ -std=c++11 -o bin/2D05 main.cpp src/Utilities/*.cpp src/Controller/*.cpp -lcurl -lsqlite3 && ./bin/2D05
 
 clean:
 	- rm -rf bin/*
 
 build:
-	- clang++ -std=c++11 -o bin/2D05 main.cpp src/Controller/TrafficFlood.cpp src/Utilities/logger.cpp -lcurl
+	- clang++ -std=c++11 -o bin/2D05 main.cpp src/Controller/*.cpp src/Utilities/*.cpp  -lcurl -lsqlite3

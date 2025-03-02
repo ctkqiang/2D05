@@ -2,12 +2,14 @@
 #include <iostream>
 #include <string>
 
+#include "src/Controller/Agreement.h"
 #include "src/Controller/TrafficFlood.h"
 
 using namespace std;
 
 void Attack(std::string url);
-void printBanner();
+void PrintBanner();
+bool CheckAgreement();
 
 int main(int argc, char **argv) {
     std::string url;
@@ -17,7 +19,15 @@ int main(int argc, char **argv) {
 #else
     system("clear");
 #endif
-    printBanner();
+
+    if (!Agreement::InitDatabase()) {
+        std::cout << "\033[31m系统初始化失败\033[0m" << std::endl;
+        return 1;
+    }
+
+    PrintBanner();
+
+    if (!CheckAgreement()) return 1;
 
     cout << "\033[36m┌──────────────────────────────────────┐\033[0m\n";
     cout << "\033[36m│\033[0m     \033[1m请输入要攻击的网址:\033[0m            "
@@ -43,7 +53,7 @@ void Attack(std::string url) {
     }
 }
 
-void printBanner() {
+void PrintBanner() {
     cout << "\033[1;35m";
     cout << "╔════════════════════════════════════════════╗\n";
     cout << "║            2D05 DDoS 攻击工具              ║\n";
@@ -51,4 +61,21 @@ void printBanner() {
     cout << "║             作者: 钟智强                   ║\n";
     cout << "╚════════════════════════════════════════════╝\n";
     cout << "\033[0m\n";
+}
+
+bool CheckAgreement() {
+    if (!Agreement::HasUserAgreed()) {
+        Agreement::ShowAgreement();
+
+        std::cout << "\n是否同意以上条款？(y/n): ";
+        char response;
+        std::cin >> response;
+
+        if (response != 'y' && response != 'Y') {
+            std::cout << "\033[31m您必须同意条款才能使用本软件。\033[0m\n";
+            return false;
+        }
+    }
+
+    return true;
 }

