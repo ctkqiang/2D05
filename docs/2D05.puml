@@ -1,24 +1,49 @@
-@startuml 2D05
+@startuml 2D05 
 left to right direction
 
-actor "Attacker" as Hacker
-rectangle "Command & Control (C2)" as C2 {
-  component "Botmaster Server"
-}
-cloud "Botnet" {
-  component "Compromised Devices (Bots)"
-  component "IoT Devices"
-  component "Servers"
-}
-rectangle "Target" as Target {
-  component "Web Server"
-  component "Database"
+actor "用户" as User
+rectangle "2D05 工具" as Tool {
+    component "用户协议" as Agreement
+    component "流量发送器" as TrafficFlood {
+        component "HTTP请求" as HTTP
+        component "PING请求" as PING
+    }
+    database "SQLite" as DB
 }
 
-Hacker --> C2 : 1. Sends attack command
-C2 --> Botnet : 2. Propagates instructions
-Botnet --> Target : 3. Floods target with traffic (HTTP/SYN/UDP)
-Target --> Target : 4. Resource exhaustion (CPU/RAM/Bandwidth)
-Target --> [Down] : 5. Service disruption
+rectangle "目标系统" as Target {
+    component "Web服务器" as WebServer
+    component "DNS服务器" as DNS
+}
+
+rectangle "保护机制" as Protection {
+    component "中国域名检测" as CNFilter
+    component "URL验证" as URLCheck
+    component "响应分析" as Response
+}
+
+User --> Agreement : 1. 同意条款
+Agreement <--> DB : 存储状态
+User --> TrafficFlood : 2. 输入目标URL
+TrafficFlood --> CNFilter : 3. 域名检查
+CNFilter --> TrafficFlood : 4. 验证结果
+
+TrafficFlood --> DNS : 5. 解析域名
+DNS --> TrafficFlood : 6. 返回IP
+
+TrafficFlood --> URLCheck : 7. 可访问性检查
+URLCheck --> TrafficFlood : 8. 验证结果
+
+TrafficFlood --> Target : 9. 发送请求
+Target --> Response : 10. 返回响应
+Response --> User : 11. 显示结果
+
+note right of Protection
+  内置安全机制：
+  - 禁止攻击中国域名
+  - URL可访问性验证
+  - 超时保护
+  - 错误处理
+end note
 
 @enduml

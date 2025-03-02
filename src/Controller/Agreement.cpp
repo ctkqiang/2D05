@@ -1,3 +1,16 @@
+/**
+ * 用户协议管理模块
+ *
+ * 功能说明：
+ * 1. 管理用户协议的接受状态
+ * 2. 使用SQLite数据库存储协议状态
+ * 3. 提供协议展示和确认功能
+ *
+ * 数据库结构：
+ * - 表名：agreement
+ * - 字段：agreed (INTEGER)
+ * - 默认值：0（未同意）
+ */
 #include "Agreement.h"
 
 #include <sqlite3.h>

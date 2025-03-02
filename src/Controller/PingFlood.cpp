@@ -1,3 +1,17 @@
+/**
+ * PING测试模块
+ *
+ * 功能说明：
+ * 1. 支持Windows和Unix系统
+ * 2. 提供高强度PING请求功能
+ * 3. 自动隐藏系统输出
+ * 4. 提供校验和计算功能
+ *
+ * 实现特点：
+ * - Windows: 使用 ping -t 持续PING
+ * - Unix: 使用 ping -c 指定次数
+ * - 支持静默模式运行
+ */
 #include "PingFlood.h"
 
 #include <arpa/inet.h>

