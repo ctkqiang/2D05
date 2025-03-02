@@ -234,7 +234,7 @@ make
   <br>
   <sub>版权所有 © 2024 钟智强</sub>
 </div>
-
+<!-- 
 <style>
 /* Modern UI Styles */
 :root {
@@ -411,4 +411,6 @@ make
     background: #161b22;
   }
 }
-</style>
+</style> 
+
+-->
