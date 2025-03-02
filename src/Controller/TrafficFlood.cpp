@@ -165,7 +165,9 @@ void TrafficFlood::Flood(std::string url) {
                                 " 次请求中...");
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
+
                 clearLine();
+
                 std::cout << "\033[32m|> 第 " << (counter + 1)
                           << " 次请求开始\033[0m" << std::endl;
                 if (HttpRequest(ip) != 0) {
