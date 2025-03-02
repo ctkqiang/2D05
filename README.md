@@ -87,6 +87,31 @@ make
 
 </details>
 
+<div class="download-section">
+  <div class="download-card">
+    <div class="version-badge">v1.0.0</div>
+    <h3>⬇️ 立即下载</h3>
+    <p class="download-info">
+      <span class="file-size">12.5 MB</span> • 
+      <span class="platform">MacOS/Linux</span> • 
+      <span class="release-date">2024-01-20</span>
+    </p>
+    <div class="download-buttons">
+      <a href="https://github.com/ctkqiang/2D05/releases/download/v1.0.0/2D05" class="download-button">
+        <span class="button-icon">⚡</span>
+        <span class="button-text">下载应用程序</span>
+      </a>
+      <a href="https://github.com/ctkqiang/2D05/releases/tag/v1.0.0" class="release-notes-button">
+        查看发布说明
+      </a>
+    </div>
+    <div class="checksum">
+      SHA-256: <code>{{ checksum }}</code>
+    </div>
+  </div>
+</div>
+
+
 ## 📊 性能指标
 
 - 并发请求数：1000+
