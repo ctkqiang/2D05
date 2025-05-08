@@ -1,0 +1,65 @@
+name: Build & Release Cross-platform
+
+on:
+  push:
+    tags:
+      - 'v*'  # e.g. push v1.0.0 to trigger
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Set up dependencies
+      if: matrix.os == 'macos-latest'
+      run: brew install curl sqlite3
+
+    - name: Build (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p bin
+        clang++ -std=c++11 -o bin/2D05-mac main.cpp src/Utilities/*.cpp src/Controller/*.cpp -lcurl -lsqlite3
+
+    - name: Build (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir bin
+        g++ -std=c++11 -o bin/2D05-win.exe main.cpp src/Utilities/*.cpp src/Controller/*.cpp -lcurl -lsqlite3 -lws2_32
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: 2D05-${{ matrix.os }}
+        path: bin/
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist
+
+    - name: Zip binaries
+      run: |
+        cd dist
+        zip -r 2D05-mac.zip 2D05-macos-latest/
+        zip -r 2D05-win.zip 2D05-windows-latest/
+
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          dist/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
